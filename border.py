@@ -15,3 +15,8 @@ while running:
         characterX = 0
     elif characterX >= 1440:
         characterX = 1440
+
+    if characterY > 850:
+        characterY = 850
+    elif characterY <= 0:
+        characterY = 0
