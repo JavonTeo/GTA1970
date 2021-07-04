@@ -1,78 +1,122 @@
 import pygame
-from pygame.constants import KEYDOWN
+import math
+import movement
+
 
 pygame.init()
 
 screen = pygame.display.set_mode((1500, 900))
+movement.screen = screen
+clock = pygame.time.Clock()
 floor = pygame.image.load('desertground.jpg')
+pygame.display.set_caption("GTA 1970")
 game_floor = pygame.transform.scale(floor, (1500, 150))
-
 ground_value = 717
 
-#character
-R_character = pygame.image.load('bomb.png')
-L_character = pygame.transform.flip(R_character, True, False)
+# character
 characterX = 10
 characterY = ground_value
 characterX_change = 0
 characterY_change = 0
+jump_counter = 0
+jump = False
 
-#enemy
-enemy = pygame.image.load('foot-clan.png')
+# enemy
+enemy = pygame.image.load('bomb.png')
 enemyX = 700
 enemyY = ground_value
-
-running = True
 Kspace_released = False
 wentforkill = False
-character = R_character
-jump = False
+movement.movement_counter = 0
+movement.walk_count = 0
+running = True
 while running:
+    clock.tick(60)
     dist = abs(enemyX - characterX)
-    screen.fill((31,187,255))
+    screen.fill((31, 187, 255))
     screen.blit(game_floor, (0, 750))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        # press down
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                character = L_character
-                characterX_change = -1
+            movement.movement_counter += 1
             if event.key == pygame.K_RIGHT:
-                character = R_character
-                characterX_change = 1
+                characterX_change = 3
+                if not movement.sliding:
+                    movement.right = True
+                    movement.left = False
+                    movement.idling = False
+                else:
+                    movement.right = False
+                    movement.left = False
+                    movement.idling = False
+
+            elif event.key == pygame.K_LEFT:
+                characterX_change = -3
+                if not movement.sliding:
+                    movement.right = False
+                    movement.left = True
+                    movement.idling = False
+                else:
+                    movement.right = False
+                    movement.left = False
+                    movement.idling = False
+
+            else:
+                movement.right = False
+                movement.left = False
+                movement.idling = True
+
+            if event.key == pygame.K_DOWN:
+                movement.sliding = True
+                movement.right = False
+                movement.left = False
+                movement.idling = False
+
             if event.key == pygame.K_SPACE:
-                if jump == False:
+                if not jump:
                     jump = True
-                    if character == R_character:
-                        characterX_change = 1.25
-                        characterY_change = -3
-                    elif character == L_character:
-                        characterX_change = -1.25
-                        characterY_change = -3
+                    movement.idling = True
+                    characterY_change = -3
             if event.key == pygame.K_q:
-                #jump to enemy
+                # jump to enemy
                 if characterX < enemyX:
                     characterX_change = 2
                 elif characterX > enemyX:
                     characterX_change = -2
-                
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                character = L_character
-                characterX_change = 0
+
+        # release
+        elif event.type == pygame.KEYUP:
+            movement.movement_counter -= 1
             if event.key == pygame.K_RIGHT:
-                character = R_character
                 characterX_change = 0
+                movement.right = False
+                movement.idling = True
+
+            if event.key == pygame.K_LEFT:
+                characterX_change = 0
+                movement.left = False
+                movement.idling = True
+
             if event.key == pygame.K_SPACE:
                 Kspace_released = True
                 jump = False
-                if character == R_character:
-                    characterX_change = 1.25
-                    characterY_change = 3
-                elif character == L_character:
-                    characterX_change = -1.25
-                    characterY_change = 3
+                characterY_change = 3
+
+            if event.key == pygame.K_DOWN:
+                movement.sliding = False
+                movement.crouch = False
+                movement.idling = True
+                if movement.movement_counter >= 1:
+                    if characterX_change > 0:
+                        movement.right = True
+                        characterX_change = 3
+                    else:
+                        movement.left = True
+                        characterX_change = -3
+
             if event.key == pygame.K_q:
                 if characterX < enemyX:
                     characterX_change = 2
@@ -80,9 +124,7 @@ while running:
                 elif characterX > enemyX:
                     characterX_change = -2
                     wentforkill = True
-                
-    characterX += characterX_change
-    characterY += characterY_change
+
 
     if Kspace_released and characterY >= ground_value:
         characterX_change = 0
@@ -95,7 +137,61 @@ while running:
 
     if characterY >= ground_value:
         characterY = ground_value
-    
-    screen.blit(enemy, (enemyX, enemyY))     
-    screen.blit(character, (characterX, characterY))
+
+    if jump:
+        jump_counter += 1
+    elif not jump:
+        if jump_counter > 0:
+            jump_counter -= 1
+
+    if jump_counter >= 100:
+        characterY_change = 3
+        if characterY >= ground_value:
+            characterY_change = 0
+
+
+
+    # Left right animation
+    if movement.walk_count + 1 >= 36:
+        movement.walk_count = 0
+    movement.walk_count += 1
+    if movement.right:
+        movement.right_run(characterX, characterY)
+        movement.idling = False
+    if movement.left:
+        movement.left_run(characterX, characterY)
+        movement.idling = False
+    # idle animation
+    if movement.idle_count + 1 >= 24:
+        movement.idle_count = 0
+    if movement.movement_counter == 0 or movement.idling is True:
+        movement.idle_movement(characterX, characterY)
+    movement.idle_count += 1
+
+    # slide animation
+    if movement.slide_count + 1 >= 12:
+        movement.slide_count = 0
+    movement.slide_count += 1
+    if movement.sliding:
+        if characterX_change > 0:
+            movement.slide_right(characterX, characterY)
+            characterX_change = 2
+        elif characterX_change < 0:
+            movement.slide_left(characterX, characterY)
+            characterX_change = -2
+        else:
+            movement.crouch = True
+
+    if movement.crouch_count + 1 >= 24:
+        movement.crouch_count = 0
+    movement.crouch_count += 1
+    if movement.crouch:
+        movement.idling = False
+        if movement.movement_counter > 1:
+            movement.crouch = False
+        movement.crouch_movement(characterX, characterY)
+    characterX += characterX_change
+    characterY += characterY_change
+
+    screen.blit(enemy, (enemyX, enemyY))
     pygame.display.update()
