@@ -5,20 +5,22 @@ import math
 
 pygame.init()
 
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((1500, 900))
 clock = pygame.time.Clock()
 pygame.display.set_caption("GTA 1970")
-background = pygame.image.load("background.jpg")
 left = False
 right = False
 idling = True
 sliding = False
+crouch = False
 characterX = 300
 characterY = 300
 characterX_change = 0
+characterY_change = 0
 walk_count = 0
 idle_count = 0
 slide_count = 0
+crouch_count = 0
 movement_counter = 0
 running = True
 
@@ -54,8 +56,9 @@ def idle_movement(x, y):
     screen.blit(idle[idle_count // 6], (x, y))
 
 
-right_slide = [pygame.image.load('Individual Sprites/adventurer-slide-00.png'), pygame.image.load('Individual Sprites/adventurer-slide-01.png')]
-left_slide= []
+right_slide = [pygame.image.load('Individual Sprites/adventurer-slide-00.png'),
+               pygame.image.load('Individual Sprites/adventurer-slide-01.png')]
+left_slide = []
 for item in right_slide:
     left_slide.append(pygame.transform.flip(item, True, False))
 
@@ -68,9 +71,18 @@ def slide_left(x, y):
     screen.blit(left_slide[slide_count // 6], (x, y))
 
 
+crouching = [pygame.image.load('./Individual Sprites/adventurer-crouch-00.png'),
+             pygame.image.load('./Individual Sprites/adventurer-crouch-01.png'),
+             pygame.image.load('./Individual Sprites/adventurer-crouch-02.png'),
+             pygame.image.load('./Individual Sprites/adventurer-crouch-03.png')]
+
+
+def crouch_movement(x, y):
+    screen.blit(crouching[crouch_count // 6], (x, y))
+
+
 while running:
     clock.tick(60)
-    screen.blit(background, (0, 0))
 
     # movement bind
     for event in pygame.event.get():
@@ -123,12 +135,15 @@ while running:
                 idling = True
             if event.key == pygame.K_DOWN:
                 sliding = False
+                crouch = False
                 idling = True
                 if movement_counter >= 1:
                     if characterX_change > 0:
                         right = True
+                        characterX_change = 3
                     else:
                         left = True
+                        characterX_change = -3
                 pygame.event.clear(pygame.KEYDOWN)
 
     # Left right animation
@@ -154,8 +169,19 @@ while running:
     if sliding:
         if characterX_change > 0:
             slide_right(characterX, characterY)
-        else:
+            characterX_change = 2
+        elif characterX_change < 0:
             slide_left(characterX, characterY)
+            characterX_change = -2
+        else:
+            crouch = True
 
+    if crouch_count + 1 >= 24:
+        crouch_count = 0
+    crouch_count += 1
+    if crouch:
+        if movement_counter > 1:
+            crouch = False
+        crouch_movement(characterX, characterY)
     characterX += characterX_change
     pygame.display.update()
