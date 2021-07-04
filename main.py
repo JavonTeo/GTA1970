@@ -149,7 +149,12 @@ while running:
         if characterY >= ground_value:
             characterY_change = 0
 
-
+    # Border Limit
+    if characterX <= -10:
+        characterX = -10
+    elif characterX >= 1450:
+        characterX = 1450
+    
 
     # Left right animation
     if movement.walk_count + 1 >= 36:
