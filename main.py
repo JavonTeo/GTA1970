@@ -18,19 +18,20 @@ characterX = 10
 characterY = ground_value
 characterX_change = 0
 characterY_change = 0
-jump_counter = 0
-jump = False
+movement.jump = False
+jump_release = True
 
 # enemy
 enemy = pygame.image.load('bomb.png')
 enemyX = 700
 enemyY = ground_value
-Kspace_released = False
 wentforkill = False
 movement.movement_counter = 0
 movement.walk_count = 0
 running = True
+
 while running:
+
     clock.tick(60)
     dist = abs(enemyX - characterX)
     screen.fill((31, 187, 255))
@@ -42,32 +43,36 @@ while running:
         # press down
         if event.type == pygame.KEYDOWN:
             movement.movement_counter += 1
+
             if event.key == pygame.K_RIGHT:
                 characterX_change = 3
-                if not movement.sliding:
-                    movement.right = True
-                    movement.left = False
-                    movement.idling = False
-                else:
+                if movement.sliding or movement.fall:
                     movement.right = False
                     movement.left = False
                     movement.idling = False
 
+                else:
+                    movement.right = True
+                    movement.left = False
+                    movement.idling = False
+
+
             elif event.key == pygame.K_LEFT:
                 characterX_change = -3
-                if not movement.sliding:
+                if movement.sliding or movement.fall:
                     movement.right = False
-                    movement.left = True
+                    movement.left = False
                     movement.idling = False
                 else:
                     movement.right = False
-                    movement.left = False
+                    movement.left = True
                     movement.idling = False
 
             else:
                 movement.right = False
                 movement.left = False
                 movement.idling = True
+                movement.fall = False
 
             if event.key == pygame.K_DOWN:
                 movement.sliding = True
@@ -75,11 +80,15 @@ while running:
                 movement.left = False
                 movement.idling = False
 
-            if event.key == pygame.K_SPACE:
-                if not jump:
-                    jump = True
-                    movement.idling = True
-                    characterY_change = -3
+            if event.key == pygame.K_UP:
+                if not movement.jump:       # if not jumping  aka jump = False
+                    movement.jump = True
+                    movement.idling = False
+                    characterY_change = -5
+                    movement.jump_release = False
+                    movement.fall = False
+                    movement.right = False
+
             if event.key == pygame.K_q:
                 # jump to enemy
                 if characterX < enemyX:
@@ -90,6 +99,7 @@ while running:
         # release
         elif event.type == pygame.KEYUP:
             movement.movement_counter -= 1
+
             if event.key == pygame.K_RIGHT:
                 characterX_change = 0
                 movement.right = False
@@ -100,20 +110,23 @@ while running:
                 movement.left = False
                 movement.idling = True
 
-            if event.key == pygame.K_SPACE:
-                Kspace_released = True
-                jump = False
-                characterY_change = 3
+            if event.key == pygame.K_UP:
+                movement.jump = False
+                movement.fall = True
+                jump_release = True
+                if not movement.jump:
+                    characterY_change = 2
 
             if event.key == pygame.K_DOWN:
                 movement.sliding = False
                 movement.crouch = False
                 movement.idling = True
+
                 if movement.movement_counter >= 1:
-                    if characterX_change > 0:
+                    if characterX_change > 0 and not movement.sliding:
                         movement.right = True
                         characterX_change = 3
-                    else:
+                    elif characterX_change < 0 and not movement.sliding:
                         movement.left = True
                         characterX_change = -3
 
@@ -126,9 +139,6 @@ while running:
                     wentforkill = True
 
 
-    if Kspace_released and characterY >= ground_value:
-        characterX_change = 0
-        Kspace_released = False
 
     if wentforkill == True:
         if dist <= 5:
@@ -137,24 +147,54 @@ while running:
 
     if characterY >= ground_value:
         characterY = ground_value
-
-    if jump:
-        jump_counter += 1
-    elif not jump:
-        if jump_counter > 0:
-            jump_counter -= 1
-
-    if jump_counter >= 100:
-        characterY_change = 3
-        if characterY >= ground_value:
+        movement.fall = False
+        if not movement.fall and not movement.jump:
             characterY_change = 0
 
-    # Border Limit
-    if characterX <= -10:
-        characterX = -10
-    elif characterX >= 1450:
-        characterX = 1450
-    
+
+    # jump animation
+    # jump ceiling
+    if characterY <= 669:
+        movement.jump = False
+        jump_release = True
+        movement.idling = True
+        movement.fall = True
+
+    if movement.jump_count + 1 >= 40:
+        movement.jump_count = 0
+    movement.jump_count += 1
+    if movement.fall_count + 1 >= 12:
+        movement.fall_count = 0
+    movement.fall_count += 1
+    if movement.jump:
+        if characterX_change >= 0:
+            movement.jump_right(characterX, characterY)
+        elif characterX_change < 0:
+            movement.jump_left(characterX, characterY)
+        movement.right = False
+        movement.left = False
+    elif movement.fall:
+        characterY_change = 2
+
+    #TODO
+    # CHARACTER DISAPPEAR AFTER LANDING
+    # CROUCHING WHILE JUMPING OVERLAY
+
+    if jump_release:
+        if movement.movement_counter >= 1 and not movement.sliding:
+            if characterX_change > 0:
+                movement.right = True
+            elif characterX_change < 0:
+                movement.left = True
+    if movement.fall:
+        if characterX_change >= 0:
+            movement.fall_right(characterX, characterY)
+        elif characterX_change < 0:
+            movement.fall_left(characterX, characterY)
+        movement.right = False
+        movement.left = False
+
+    print(movement.movement_counter)
 
     # Left right animation
     if movement.walk_count + 1 >= 36:
@@ -166,11 +206,17 @@ while running:
     if movement.left:
         movement.left_run(characterX, characterY)
         movement.idling = False
+
+
+
     # idle animation
     if movement.idle_count + 1 >= 24:
         movement.idle_count = 0
-    if movement.movement_counter == 0 or movement.idling is True:
-        movement.idle_movement(characterX, characterY)
+    if movement.movement_counter == 0:
+        if movement.fall:
+            pass
+        else:
+            movement.idle_movement(characterX, characterY)
     movement.idle_count += 1
 
     # slide animation
@@ -179,14 +225,15 @@ while running:
     movement.slide_count += 1
     if movement.sliding:
         if characterX_change > 0:
+            movement.right = False
             movement.slide_right(characterX, characterY)
             characterX_change = 2
         elif characterX_change < 0:
+            movement.left = False
             movement.slide_left(characterX, characterY)
             characterX_change = -2
         else:
             movement.crouch = True
-
     if movement.crouch_count + 1 >= 24:
         movement.crouch_count = 0
     movement.crouch_count += 1
