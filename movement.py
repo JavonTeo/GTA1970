@@ -23,7 +23,10 @@ slide_count = 0
 crouch_count = 0
 movement_counter = 0
 running = True
-
+jump = False
+jump_count = 0
+fall = False
+fall_count = 0
 # character model
 run_right = [pygame.image.load("./Individual Sprites/adventurer-run-00.png"),
              pygame.image.load("./Individual Sprites/adventurer-run-01.png"),
@@ -81,4 +84,38 @@ def crouch_movement(x, y):
     screen.blit(crouching[crouch_count // 6], (x, y))
 
 
+jumping_right = [pygame.image.load('./Individual Sprites/adventurer-jump-00.png'),
+           pygame.image.load('./Individual Sprites/adventurer-jump-01.png'),
+           pygame.image.load('./Individual Sprites/adventurer-jump-02.png'),
+           pygame.image.load('./Individual Sprites/adventurer-jump-03.png')]
+
+
+def jump_right(x, y):
+    screen.blit(jumping_right[jump_count // 10], (x, y))
+
+
+jumping_left = []
+for item in jumping_right:
+    jumping_left.append(pygame.transform.flip(item, True, False))
+
+
+def jump_left(x, y):
+    screen.blit(jumping_left[jump_count // 10], (x, y))
+
+
+falling_right = [pygame.image.load('./Individual Sprites/adventurer-fall-00.png', ),
+            pygame.image.load('./Individual Sprites/adventurer-fall-01.png',)]
+
+
+def fall_right(x, y):
+    screen.blit(falling_right[fall_count // 6], (x, y))
+
+
+falling_left = []
+for item in falling_right:
+    falling_left.append(pygame.transform.flip(item, True, False))
+
+
+def fall_left(x, y):
+    screen.blit(falling_left[fall_count // 6], (x, y))
 
