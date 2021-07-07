@@ -137,13 +137,12 @@ while running:
         if not movement.fall and not movement.jump:
             characterY_change = 0
 
-
-
     # jump animation
     # jump ceiling, force jump release
     if characterY <= 669:
         movement.jump = False
         movement.fall = True
+        movement.movement_counter -= 1
     # looping thru animation
     if movement.jump_count + 1 >= 40:
         movement.jump_count = 0
@@ -164,7 +163,7 @@ while running:
             movement.left = False
     elif movement.fall:
         characterY_change = 2
-    print(movement.idling)
+
     #TODO
     # CHARACTER DISAPPEAR AFTER LANDING
 
@@ -203,14 +202,17 @@ while running:
 
 
     # idle animation
-    if movement.idle_count + 1 >= 24:
-        movement.idle_count = 0
     if movement.movement_counter == 0:
         if movement.fall:
             pass
         else:
             movement.idle_movement(characterX, characterY)
+    if movement.movement_counter == - 1:
+        movement.idle_movement(characterX, characterY)
+    if movement.idle_count + 1 >= 24:
+        movement.idle_count = 0
     movement.idle_count += 1
+
     # slide animation
     if movement.slide_count + 1 >= 12:
         movement.slide_count = 0
@@ -238,6 +240,8 @@ while running:
         movement.crouch_movement(characterX, characterY)
     characterX += characterX_change
     characterY += characterY_change
+
+    print(movement.idling) 
 
     screen.blit(enemy, (enemyX, enemyY))
     pygame.display.update()
