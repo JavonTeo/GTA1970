@@ -27,6 +27,17 @@ jump = False
 jump_count = 0
 fall = False
 fall_count = 0
+attack = False
+attack_1_loop = 0
+attack_2_loop = 0
+attack_3_loop = 0
+attack_action_complete = False
+attack_counter = 0
+attack_count_1 = 0
+attack_count_2 = 0
+attack_count_3 = 0
+face_right = True
+face_left = False
 # character model
 run_right = [pygame.image.load("./Individual Sprites/adventurer-run-00.png"),
              pygame.image.load("./Individual Sprites/adventurer-run-01.png"),
@@ -59,6 +70,15 @@ def idle_movement(x, y):
     screen.blit(idle[idle_count // 6], (x, y))
 
 
+idle_left = []
+for image in idle:
+    idle_left.append(pygame.transform.flip(image, True, False))
+
+
+def idle_movement_left(x, y):
+    screen.blit(idle_left[idle_count // 6], (x, y))
+
+
 right_slide = [pygame.image.load('Individual Sprites/adventurer-slide-00.png'),
                pygame.image.load('Individual Sprites/adventurer-slide-01.png')]
 left_slide = []
@@ -85,9 +105,9 @@ def crouch_movement(x, y):
 
 
 jumping_right = [pygame.image.load('./Individual Sprites/adventurer-jump-00.png'),
-           pygame.image.load('./Individual Sprites/adventurer-jump-01.png'),
-           pygame.image.load('./Individual Sprites/adventurer-jump-02.png'),
-           pygame.image.load('./Individual Sprites/adventurer-jump-03.png')]
+                 pygame.image.load('./Individual Sprites/adventurer-jump-01.png'),
+                 pygame.image.load('./Individual Sprites/adventurer-jump-02.png'),
+                 pygame.image.load('./Individual Sprites/adventurer-jump-03.png')]
 
 
 def jump_right(x, y):
@@ -104,7 +124,7 @@ def jump_left(x, y):
 
 
 falling_right = [pygame.image.load('./Individual Sprites/adventurer-fall-00.png', ),
-            pygame.image.load('./Individual Sprites/adventurer-fall-01.png',)]
+                 pygame.image.load('./Individual Sprites/adventurer-fall-01.png', )]
 
 
 def fall_right(x, y):
@@ -119,3 +139,64 @@ for item in falling_right:
 def fall_left(x, y):
     screen.blit(falling_left[fall_count // 6], (x, y))
 
+
+attacking_right_1 = [pygame.image.load('./Individual Sprites/adventurer-attack1-00.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack1-01.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack1-02.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack1-03.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack1-04.png')]
+
+
+def attack_right_1(x, y):
+    screen.blit(attacking_right_1[attack_count_1 // 6], (x, y))
+
+
+attacking_left_1 = []
+for item in attacking_right_1:
+    attacking_left_1.append(pygame.transform.flip(item, True, False))
+
+
+def attack_left_1(x, y):
+    screen.blit(attacking_left_1[attack_count_1 // 6], (x, y))
+
+
+attacking_right_2 = [pygame.image.load('./Individual Sprites/adventurer-attack2-00.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack2-01.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack2-02.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack2-03.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack2-04.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack2-05.png')]
+
+
+def attack_right_2(x, y):
+    screen.blit(attacking_right_2[attack_count_2 // 6], (x, y))
+
+
+attacking_left_2 = []
+for item in attacking_right_2:
+    attacking_left_2.append(pygame.transform.flip(item, True, False))
+
+
+def attack_left_2(x, y):
+    screen.blit(attacking_left_2[attack_count_2 // 6], (x, y))
+
+
+attacking_right_3 = [pygame.image.load('./Individual Sprites/adventurer-attack3-00.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack3-01.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack3-02.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack3-03.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack3-04.png'),
+                     pygame.image.load('./Individual Sprites/adventurer-attack3-05.png')]
+
+
+def attack_right_3(x, y):
+    screen.blit(attacking_right_3[attack_count_3 // 6], (x, y))
+
+
+attacking_left_3 = []
+for item in attacking_right_3:
+    attacking_left_3.append(pygame.transform.flip(item, True, False))
+
+
+def attacking_left_3(x, y):
+    screen.blit(attacking_left_3[attack_count_3 // 6], (x, y))
