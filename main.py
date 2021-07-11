@@ -2,27 +2,24 @@ import pygame
 import math
 import movement
 
-
 pygame.init()
-#game constants
-screen = pygame.display.set_mode((1500, 900))
+# game constants
+screen = pygame.display.set_mode((1500, 900))  # display resolution
 movement.screen = screen
 clock = pygame.time.Clock()
 floor = pygame.image.load('desertground.jpg')
 pygame.display.set_caption("GTA 1970")
 game_floor = pygame.transform.scale(floor, (1500, 150))
 ground_value = 717
-attack_animation = [0,1,2]
-temp_added = False
+temp_added = False  # temp bool value for smooth attack animation
 moving = False
 
 # character
-characterX = 10
+characterX = 10  # base character X value
 characterY = ground_value
 characterX_change = 0
 characterY_change = 0
 movement.jump = False
-
 
 # enemy
 enemy = pygame.image.load('bomb.png')
@@ -46,14 +43,12 @@ while running:
         # press down
         if event.type == pygame.KEYDOWN:
             movement.movement_counter += 1
-            # prevents attack animation during movement
-            if not movement.attack:
-                # if not movement.attack:
+            if not movement.attack:  # prevents attack animation during movement
                 if event.key == pygame.K_RIGHT:
                     characterX_change = 3
                     movement.face_right = True
                     movement.face_left = False
-                    if movement.sliding or movement.fall:
+                    if movement.sliding or movement.fall:  # prevent running animation when falling or sliding
                         movement.right = False
                         movement.left = False
                         movement.idling = False
@@ -68,7 +63,7 @@ while running:
                     characterX_change = -3
                     movement.face_left = True
                     movement.face_right = False
-                    if movement.sliding or movement.fall:
+                    if movement.sliding or movement.fall:  # prevent running animation when falling or sliding
                         movement.right = False
                         movement.left = False
                         movement.idling = False
@@ -78,14 +73,14 @@ while running:
                         movement.idling = False
                         moving = True
 
-                elif movement.movement_counter == 0:
+                elif movement.movement_counter == 0:  # if not moving , then default is idling
                     movement.right = False
                     movement.left = False
                     movement.idling = True
                     movement.fall = False
 
                 if event.key == pygame.K_DOWN:
-                    if not movement.jump:
+                    if not movement.jump and not movement.fall:  # prevent sliding animation when jumping and falling
                         moving = True
                         movement.sliding = True
                         movement.right = False
@@ -94,27 +89,28 @@ while running:
 
                 if event.key == pygame.K_UP:
                     if not movement.sliding:
-                        if not movement.jump:       # if not jumping  aka jump = False
+                        if not movement.jump and not movement.jump_state:  # if not jumping  aka jump = False
                             movement.jump = True
                             moving = True
                             movement.idling = False
-                            characterY_change = -1
+                            characterY_change = -5
                             movement.fall = False
                             movement.right = False
 
             if event.key == pygame.K_SPACE:
                 if not moving:
-                    if movement.movement_counter == 1:
-                        #if movement.attack_counter + 1 == 4:
-                            #movement.attack_counter = 0
-                        movement.attack_counter = 1
-                        if not movement.jump and not movement.attack:
+                    if movement.movement_counter == 1:  # loops thru attack type
+                        if movement.attack_counter + 1 == 4:
+                            movement.attack_counter = 0
+                        movement.attack_counter += 1
+                        if not movement.jump and not movement.attack:  # actual attack conditions
                             movement.attack = True
                             moving = False
                             movement.idling = True
                             movement.fall = False
                             movement.right = False
                             movement.left = False
+
 
         # release
         elif event.type == pygame.KEYUP:
@@ -165,14 +161,12 @@ while running:
                         movement.attack_action_complete = False
                     if not movement.attack and not movement.jump:
                         movement.idling = True
-    print(moving)
     # floor limit
     if characterY >= ground_value:
         characterY = ground_value
         movement.fall = False
         if not movement.fall and not movement.jump:
             characterY_change = 0
-
 
     # jump ceiling, force jump release
     if characterY <= 669:
@@ -181,24 +175,45 @@ while running:
         if characterX_change == 0:
             movement.movement_counter -= 1
 
-
     # attack animation
 
     # attack move
     if movement.attack and characterX_change == 0:
-        if movement.attack_counter == 1:
-            if movement.attack_action_complete is False:
-                movement.attack_action_complete = False
+        if movement.attack_action_complete is False:  # if attack haven't start
+            if movement.attack_counter == 1:
                 movement.attack_count_1 += 1
-                if movement.attack_count_1 + 1 >= 30:
+                if movement.attack_count_1 + 1 >= 30:  # loops thru attack frames
                     movement.attack_count_1 = 0
                     movement.attack_action_complete = True
-                    movement.attack = False
+                    movement.attack = False  # resets attack counter to enable attack again
                 if movement.face_right:
                     movement.attack_right_1(characterX, characterY)
                 elif movement.face_left:
                     movement.attack_left_1(characterX, characterY)
-    if movement.attack:
+
+            elif movement.attack_counter == 2:
+                movement.attack_count_2 += 1
+                if movement.attack_count_2 + 1 >= 36:
+                    movement.attack_count_2 = 0
+                    movement.attack_action_complete = True
+                    movement.attack = False
+                if movement.face_right:
+                    movement.attack_right_2(characterX, characterY)
+                elif movement.face_left:
+                    movement.attack_left_2(characterX, characterY)
+
+            elif movement.attack_counter == 3:
+                movement.attack_count_3 += 1
+                if movement.attack_count_3 + 1 >= 36:
+                    movement.attack_count_3 = 0
+                    movement.attack_action_complete = True
+                    movement.attack = False
+                if movement.face_right:
+                    movement.attack_right_3(characterX, characterY)
+                elif movement.face_left:
+                    movement.attack_left_3(characterX, characterY)
+
+    if movement.attack:  # smoothes out attack animation
         if not temp_added:
             movement.movement_counter += 1
             temp_added = True
@@ -207,32 +222,34 @@ while running:
             movement.movement_counter -= 1
             temp_added = False
 
-
-    if movement.attack_action_complete:
+    if movement.attack_action_complete:  # default idle after attack completion
         movement.idling = True
+    if moving:
+        movement.attack_counter = 0
 
-    #prevent moving while animation going on
-    if movement.attack_count_1  > 0 or movement.attack_count_2  > 0 or movement.attack_count_3 > 0:
+    if movement.attack_count_1 > 0 or movement.attack_count_2 > 0 or movement.attack_count_3 > 0:  # prevent moving while attack animation going on
         movement.right = False
         movement.left = False
         movement.idling = False
     movement.attack_action_complete = False
 
     # jump animation
+    if characterY_change > 0:                      # prevent double jumping
+        movement.jump_state = True
+    elif characterY_change == 0:
+        movement.jump_state = False
 
-
-    # looping thru animation
-    if movement.jump_count + 1 >= 40:
+    if movement.jump_count + 1 >= 40:              # looping thru animation
         movement.jump_count = 0
     movement.jump_count += 1
     if movement.fall_count + 1 >= 12:
         movement.fall_count = 0
     movement.fall_count += 1
-    # actual jump
-    if movement.jump:
+
+    if movement.jump:                                # actual jump
         if movement.sliding:
             pass
-        else:
+        elif movement:
             if characterX_change > 0:
                 movement.jump_right(characterX, characterY)
             elif characterX_change < 0:
@@ -246,10 +263,8 @@ while running:
             movement.left = False
     elif movement.fall:
         characterY_change = 2
-    #TODO
-    # CHARACTER DISAPPEAR AFTER LANDING
 
-    if movement.movement_counter >= 1 and not movement.sliding:
+    if movement.movement_counter >= 1 and not movement.sliding:         # smooth transit from falling to running
         if characterX_change > 0:
             movement.right = True
         elif characterX_change < 0:
@@ -268,9 +283,8 @@ while running:
         movement.right = False
         movement.left = False
 
-
     # Left right animation
-    if movement.walk_count + 1 >= 36:
+    if movement.walk_count + 1 >= 36:               # loop thru walking animation
         movement.walk_count = 0
     movement.walk_count += 1
     if movement.right:
@@ -286,11 +300,10 @@ while running:
             movement.left_run(characterX, characterY)
             movement.idling = False
 
-
-
     # idle animation
-    if movement.idle_count + 1 >= 24:
+    if movement.idle_count + 1 >= 24:           # loop thru idle animation
         movement.idle_count = 0
+    movement.idle_count += 1
     if movement.movement_counter == 0 or movement.idling:
         if movement.fall:
             pass
@@ -299,32 +312,29 @@ while running:
                 movement.idle_movement(characterX, characterY)
             elif movement.face_left:
                 movement.idle_movement_left(characterX, characterY)
-    movement.idle_count += 1
-    if movement.movement_counter == -1:
+    if movement.movement_counter == -1:         # prevents character disappear after landing
         if movement.face_right:
             movement.idle_movement(characterX, characterY)
         elif movement.face_left:
             movement.idle_movement_left(characterX, characterY)
         movement.movement_counter += 1
 
-
     # slide animation
-    if movement.slide_count + 1 >= 12:
+    if movement.slide_count + 1 >= 12:         # loop thru sliding animation
         movement.slide_count = 0
     movement.slide_count += 1
+
     if movement.sliding:
-        #sliding right
-        if characterX_change > 0:
+        if characterX_change > 0:  # slide right
             movement.right = False
             movement.slide_right(characterX, characterY)
             characterX_change = 2
-        #sliding left
-        elif characterX_change < 0:
+        elif characterX_change < 0:  # slide left
             movement.left = False
             movement.slide_left(characterX, characterY)
             characterX_change = -2
         else:
-            movement.crouch = True
+            movement.crouch = True  # no sliding, default is crouch
     if movement.crouch_count + 1 >= 24:
         movement.crouch_count = 0
     movement.crouch_count += 1
@@ -336,10 +346,6 @@ while running:
     characterX += characterX_change
     characterY += characterY_change
 
-
-    #offset the falling animation
-
-
-    #display enemy
+    # display enemy
     screen.blit(enemy, (enemyX, enemyY))
     pygame.display.update()
