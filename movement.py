@@ -5,7 +5,7 @@ import math
 
 pygame.init()
 
-screen = pygame.display.set_mode((1500, 900))
+screen = pygame.display.set_mode((1500, 900))              # set display resolution
 clock = pygame.time.Clock()
 pygame.display.set_caption("GTA 1970")
 left = False
@@ -25,12 +25,11 @@ movement_counter = 0
 running = True
 jump = False
 jump_count = 0
+jump_state = False
 fall = False
 fall_count = 0
 attack = False
-attack_1_loop = 0
-attack_2_loop = 0
-attack_3_loop = 0
+attack_number = 0
 attack_action_complete = False
 attack_counter = 0
 attack_count_1 = 0
@@ -198,5 +197,5 @@ for item in attacking_right_3:
     attacking_left_3.append(pygame.transform.flip(item, True, False))
 
 
-def attacking_left_3(x, y):
+def attack_left_3(x, y):
     screen.blit(attacking_left_3[attack_count_3 // 6], (x, y))
