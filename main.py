@@ -43,7 +43,7 @@ while running:
         # press down
         if event.type == pygame.KEYDOWN:
             movement.movement_counter += 1
-            if not movement.attack:  # prevents attack animation during movement
+            if not movement.attack and not movement.skill_activated:  # prevents movement during attack or skill animation vice versa
                 if event.key == pygame.K_RIGHT:
                     characterX_change = 3
                     movement.face_right = True
@@ -96,6 +96,12 @@ while running:
                             characterY_change = -5
                             movement.fall = False
                             movement.right = False
+
+                if event.key == pygame.K_q:             # dash skill
+                    if not moving:
+                        movement.dash = True
+                        movement.charge = True
+
 
             if event.key == pygame.K_SPACE:
                 if not moving:
@@ -161,6 +167,10 @@ while running:
                         movement.attack_action_complete = False
                     if not movement.attack and not movement.jump:
                         movement.idling = True
+
+            if event.key == pygame.K_q:
+                movement.charge = False
+
     # floor limit
     if characterY >= ground_value:
         characterY = ground_value
@@ -305,13 +315,15 @@ while running:
         movement.idle_count = 0
     movement.idle_count += 1
     if movement.movement_counter == 0 or movement.idling:
-        if movement.fall:
-            pass
-        else:
-            if movement.face_right:
-                movement.idle_movement(characterX, characterY)
-            elif movement.face_left:
-                movement.idle_movement_left(characterX, characterY)
+        if not movement.skill_activated:
+            if characterX_change == 0:
+                if movement.fall:
+                    pass
+                else:
+                    if movement.face_right:
+                        movement.idle_movement(characterX, characterY)
+                    elif movement.face_left:
+                        movement.idle_movement_left(characterX, characterY)
     if movement.movement_counter == -1:         # prevents character disappear after landing
         if movement.face_right:
             movement.idle_movement(characterX, characterY)
@@ -343,9 +355,32 @@ while running:
         if movement.movement_counter > 1:
             movement.crouch = False
         movement.crouch_movement(characterX, characterY)
+
+
+    # skill animation
+    if movement.dash:
+        movement.skill_activated = True
+        if movement.charge:
+            movement.charge_counter += 0.2
+            if movement.face_right:
+                movement.skill_dash_charge_right(characterX, characterY)
+            elif movement.face_left:
+                movement.skill_dash_charge_left(characterX, characterY)
+        if not movement.charge:      # not charging = finish charging
+            if movement.dash_moved < movement.charge_counter:
+                if movement.face_right:
+                    movement.skill_dash_right(characterX, characterY)
+                    characterX_change = 35
+                elif movement.face_left:
+                    movement.skill_dash_left(characterX, characterY)
+                    characterX_change = -35
+            else:                                           # end of dash
+                characterX_change = 0
+                movement.dash = False
+                movement.skill_activated = False
+            movement.dash_moved += 1
+
+    screen.blit(enemy, (enemyX, enemyY))           # display enemy
     characterX += characterX_change
     characterY += characterY_change
-
-    # display enemy
-    screen.blit(enemy, (enemyX, enemyY))
     pygame.display.update()
