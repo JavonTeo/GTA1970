@@ -5,10 +5,10 @@ import math
 
 pygame.init()
 
-screen = pygame.display.set_mode((1500, 900))              # set display resolution
+screen = pygame.display.set_mode((1500, 900))  # set display resolution
 clock = pygame.time.Clock()
 pygame.display.set_caption("GTA 1970")
-left = False
+left = False  # basic movement var
 right = False
 idling = True
 sliding = False
@@ -37,6 +37,12 @@ attack_count_2 = 0
 attack_count_3 = 0
 face_right = True
 face_left = False
+# skill variables. ALL SKILLS TO BE ADDED FROM HERE
+skill_activated = False  # GLOBAL VARIABLE FOR ALL SKILLS WHEN ACTIVATED TO PREVENT MOVEMENT
+dash = False  # dash skill
+charge = False
+charge_counter = 0
+dash_moved = 0
 # character model
 run_right = [pygame.image.load("./Individual Sprites/adventurer-run-00.png"),
              pygame.image.load("./Individual Sprites/adventurer-run-01.png"),
@@ -199,3 +205,21 @@ for item in attacking_right_3:
 
 def attack_left_3(x, y):
     screen.blit(attacking_left_3[attack_count_3 // 6], (x, y))
+
+
+def skill_dash_right(x, y):
+    screen.blit(pygame.image.load('./Individual Sprites/adventurer-attack3-02.png'), (x, y))
+
+
+def skill_dash_left(x, y):
+    screen.blit(pygame.transform.flip(pygame.image.load('./Individual Sprites/adventurer-attack3-02.png'), True, False),
+                (x, y))
+
+
+def skill_dash_charge_right(x, y):
+    screen.blit(pygame.image.load('./Individual Sprites/adventurer-attack3-05.png'), (x, y))
+
+
+def skill_dash_charge_left(x, y):
+    screen.blit(pygame.transform.flip(pygame.image.load('./Individual Sprites/adventurer-attack3-05.png'), True, False),
+                (x, y))
